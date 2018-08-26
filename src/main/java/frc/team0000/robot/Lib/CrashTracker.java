@@ -1,11 +1,10 @@
-package frc.team4468.robot.Lib;
+package frc.team0000.robot.Lib;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.UUID;
-
 /**
  * Tracks start-up and caught crash events, logging them to a file which dosn't roll over
  * team 254

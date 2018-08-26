@@ -1,10 +1,10 @@
-package frc.team4468.robot;
+package frc.team0000.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 
 public class Robot extends IterativeRobot {
     @Override
-    public void robotInit() {}
+    public void robotInit(){}
 
     @Override
     public void disabledInit(){}
@@ -25,8 +25,12 @@ public class Robot extends IterativeRobot {
     public void teleopPeriodic(){}
 
     @Override
-    public void testInit(){}
+    public void testInit(){
+        System.out.print("TESTING");
+    }
 
     @Override
-    public void testPeriodic(){}
+    public void testPeriodic(){
+        System.out.print("IN TESTING");
+    }
 }
