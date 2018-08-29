@@ -29,6 +29,7 @@ dependencies {
     compile wpilib()
     compile ctre()
     compile navx()
+    compile phoenix()
     compile openrio.powerup.matchData()
 }
 
