@@ -1,5 +1,7 @@
 package frc.team0000.robot;
 
+import edu.wpi.first.wpilibj.I2C;
+
 public class Constants{
     //// System Units
     // General
@@ -56,7 +58,7 @@ public class Constants{
     public static int rightEnc1 = 0;
     
     // Gyro
-    //public static edu.wpi.first.wpilibj.SPI.Port gyroPort = SPI.Port.kMXP;
+    public static I2C.Port gyroPort = I2C.Port.kOnboard;
     public static double angleP = 0.012;
     public static double angleI = 0.0;
     public static double angleD = 0.00;

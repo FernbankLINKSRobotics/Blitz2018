@@ -4,9 +4,11 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 import frc.team0000.robot.Lib.SubsystemManager;
 import frc.team0000.robot.Subs.Arm;
 import frc.team0000.robot.Subs.Drivetrain;
+import frc.team0000.robot.Subs.Localization;
 
 public class Robot extends IterativeRobot {
 
+    public static Localization localization;
     public static Drivetrain drivetrain;
     public static Arm arm;
     public static IO io;
@@ -15,10 +17,12 @@ public class Robot extends IterativeRobot {
 
     @Override
     public void robotInit(){
+        localization = new Localization();
         drivetrain = new Drivetrain();
         arm = new Arm();
         io = new IO();
         sm = new SubsystemManager(
+            localization,
             drivetrain,
             arm
         );
@@ -49,15 +53,29 @@ public class Robot extends IterativeRobot {
     public void teleopPeriodic(){
         io.update();
         sm.update();
-        sm.log();
+        
+        System.out.println("X: " + localization.x());
+        System.out.println("Y: " + localization.y()); 
+        
+        /*
+        System.out.println(drivetrain.getDegree());
+        System.out.println(drivetrain.getVelocity());
+
+        System.out.println("Left: " + drivetrain.getLeftDistance());
+        System.out.println("Right: " + drivetrain.getRightDistance());
+        */
+
+        //sm.log();
     }
 
     @Override
     public void testInit(){
+        System.out.println("HIIIII");
     }
 
     @Override
     public void testPeriodic(){
-        sm.log();
+        //System.out.println("Update");
+        //sm.log();
     }
 }

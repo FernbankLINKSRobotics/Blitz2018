@@ -1,9 +1,10 @@
 package frc.team0000.robot.Lib;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
 
 public class SubsystemManager implements Subsystem {
-    Deque<Subsystem> subs_;
+    Deque<Subsystem> subs_ = new ArrayDeque<Subsystem>();
 
     public SubsystemManager(Subsystem ... sub){
         for(Subsystem s : sub){ subs_.add(s); }
