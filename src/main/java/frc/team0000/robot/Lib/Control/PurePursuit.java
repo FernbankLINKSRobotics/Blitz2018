@@ -1,97 +1,93 @@
 package frc.team0000.robot.Lib.Control;
 
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
-import java.util.ArrayDeque;
-
-import frc.team0000.robot.Lib.Pair;
 import frc.team0000.robot.Lib.RobotState;
+import frc.team0000.robot.Lib.Pair;
+import frc.team0000.robot.Lib.Translation;
 
 public class PurePursuit {
-    private double cruiseV_ = 0;
-    private double forwardGain_ = 0;
-    private double lookaheadDistance_ = 0;
-    private double L = 0;
+    private double gain_ = 0;
+    private double decay_ = 0;
+    private double cruise_ = 0;
+    private ArrayList<Translation> ps_;
+    private int len_ = 0;
 
-    private int targetInd_ = 0;
-    private int ind_ = 0;
-    private int length_ = 0;
-
-    private double pSpeed_ = 0;
     private double pTurn_ = 0;
 
-    Pair<Double, Double>[] points_;
+    private PIDFSignal turnPID_;
+    private PIDFSignal speedPID_;
 
-    private PIDFSignal turnPID;
-    private PIDFSignal speedPID;
-
-
-    public PurePursuit(double cruiseV, double lookahead, double forwardGain, PIDFSignal speed, PIDFSignal turn, Pair<Double, Double>[] points){
-        this.points_ = points;
-        this.cruiseV_ = cruiseV;
-        this.forwardGain_ = forwardGain;
-        this.lookaheadDistance_ = lookahead;
-        this.turnPID = turn;
-        this.speedPID = speed;
+    public PurePursuit(double cruise, double decay, double gain, PIDFSignal turnPID, PIDFSignal speedPID, ArrayList<Translation> ps){
+        gain_ = gain;
+        decay_ = decay;
+        cruise_ = cruise;
+        turnPID_ = turnPID;
+        speedPID_ = speedPID;
+        ps_ = ps;
+        len_ = ps.size();
     }
 
-    public int index(RobotState state, Pair<Double, Double>[] ps){
-        double[] d = null;
-        for (int i=0; i< ps.length; i++){
-            d[i] = (Math.hypot((state.x - ps[i].fst()), (state.y - ps[i].snd())));
-        }
-
+    public int find(RobotState state, double dt){
+        // Calculates dead reckon estimations
+        double nx = Math.cos(state.r - Math.PI/2) * state.v * dt;
+        double ny = Math.sin(state.r - Math.PI/2) * state.v * dt;
+        // Calculates lookahead based on velocity
+        double look = gain_ * state.v;
+        
+        ArrayList<Double> d = ps_.stream() // Make stream for streamlined syntax
+                                // finds the distance to all of the points and sees if they are within the look ahead dist
+                                .map(p -> Math.hypot(state.x - p.fst(), state.y - p.snd()) - look)
+                                // amkes into an Arraylist
+                                .collect(Collectors.toCollection(ArrayList::new));
 
         int ind = 0;
-        double min = d[ind];
-        for (int j=0; j < d.length; j++) {
-            if (d[j] < min) {
-                min = d[j];
-                ind = j;
+        double min = Double.POSITIVE_INFINITY; // Numbers will be less than
+        for(int i = 0; i < ps_.size(); i++){
+            // variable to make the life easy
+            double p = d.get(i);
+            // Sees the cloest point to the expected future point
+            double v = (p + look) + Math.hypot(state.x - ps_.get(i).fst(), state.y - ps_.get(i).snd());
+            if((p > 0) // if the distance - look is more than 0
+            && (v < min)){ // if the summed distance is the least
+                min = v;
+                ind = i;
             }
         }
-
-        L = 0.0;
-        double Lf = forwardGain_ * state.v + lookaheadDistance_;
-
-        while((Lf > L) && (ind + 1 < ps.length)){
-            double dx = ps[ind+1].fst() - ps[ind].fst();
-            double dy = ps[ind+1].snd() - ps[ind].snd();
-            L += Math.hypot(dx, dy);
-            ind += 1;
-        }
-
         return ind;
     }
 
-    private double calcTurn(RobotState state, Pair<Double, Double>[] ps){
-        double tx = 0;
-        double ty = 0;
-        int ind = index(state, ps);
-        if(targetInd_ >= ind){ ind = targetInd_; }
-        if(ind > ps.length){
-            ind = ps.length - 1;
-            tx = ps[ind].fst();
-            ty = ps[ind].snd();
-        }
-
-        double alpha = Math.atan2(ty - state.y, tx - state.x) - state.r;
-        if(state.v < 0){
-            alpha = Math.PI - alpha;
-        }
-        double Lf = forwardGain_ * state.v + lookaheadDistance_;
-        double delta = Math.atan2(2.0 * L * Math.sin(alpha) / Lf, 1.0);
-
-        targetInd_ = ind;
-        return delta;
+    public Pair<Double, Double> control(RobotState state, int ind, double dt){
+        Translation p = ps_.get(ind);
+        // The difference in the heading and the target
+        double alpha = Math.atan2(state.x - p.fst(), state.y - p.snd()) - state.r;
+        if(state.v < 0){ alpha = Math.PI - alpha; } // Reverse if needed
+        double L = Math.hypot(state.x - p.fst(), state.y - p.snd()); // Distance
+        // Calculates the curvature of the path to the target
+        double delta = Math.atan2((2*L*Math.sin(alpha)) / (gain_ * state.v), 1);
+        // QaD half velocity profile
+        double speed = Math.min(cruise_, decay_ * (ind - len_));
+        // Returns the outputs of the files
+        return PIDF(state, delta, speed, dt);
     }
 
-    public Pair<Double, Double> control(RobotState state, double speed, double delta, double dt){
-        double base = (speedPID.P * (speed - state.v)) + (speedPID.F * speed) + (speedPID.D * ((state.v - pSpeed_) / 2));
-        double turn = (turnPID.P * (delta - state.r)) + (turnPID.F * delta) + (turnPID.D * ((state.r - pTurn_) / 2));
-        return new Pair<Double, Double>(base - turn, base + turn);
+    private Pair<Double, Double> PIDF(RobotState state, double delta, double speed, double dt){
+        // FP controller: speed doesnt need a lot of feedback
+        double base = (speedPID_.P * (speed - state.v)) + (speedPID_.F * speed);
+        // FPD Controller: the angle does require more control but I shouldnt be required may move to FP
+        double turn = (turnPID_.P * (delta - state.r)) + (turnPID_.F * delta) + (turnPID_.D * ((state.r - pTurn_) / 2));
+        pTurn_ = delta;
+        // Return and make sure that the values are within range
+        return new Pair<Double, Double>(clamp(1, -1, base - turn), clamp(1, -1, base + turn));
+    }
+
+    private double clamp(double hi, double lo, double v){
+        return Math.max(lo, Math.min(hi, v));
     }
 
     public Pair<Double, Double> update(RobotState state, double dt){
-
+        int ind = find(state, dt);
+        return control(state, ind, dt);
     }
 }
