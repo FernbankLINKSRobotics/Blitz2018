@@ -2,6 +2,7 @@ package frc.team0000.robot.Lib.Splines;
 
 import frc.team0000.robot.Lib.Pair;
 import frc.team0000.robot.Lib.Pose;
+import frc.team0000.robot.Lib.Translation;
 
 public class HermitePath {
     public class Quintic {
@@ -96,8 +97,8 @@ public class HermitePath {
         return Math.hypot(apply_impl(dt_impl(x_),t), apply_impl(dt_impl(y_),t));
     }
 
-    public Pair<Double, Double> point(double t){
-        return new Pair<Double,Double>(apply_impl(x_, t), apply_impl(y_, t));
+    public Translation point(double t){
+        return new Translation(apply_impl(x_,t), apply_impl(y_,t));
     }
 
     public Pose apply(double t){

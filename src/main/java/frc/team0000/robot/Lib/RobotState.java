@@ -20,4 +20,11 @@ public class RobotState {
         this.v = v;
         this.r = r;
     }
+
+    public void set(double x, double y, double v, double r){
+        this.x = x;
+        this.y = v;
+        this.v = v;
+        this.r = r;
+    }
 }

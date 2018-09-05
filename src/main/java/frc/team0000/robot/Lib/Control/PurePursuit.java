@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import frc.team0000.robot.Lib.RobotState;
 import frc.team0000.robot.Lib.Pair;
+import frc.team0000.robot.Lib.Util;
 import frc.team0000.robot.Lib.Translation;
 
 public class PurePursuit {
@@ -13,6 +14,7 @@ public class PurePursuit {
     private double cruise_ = 0;
     private ArrayList<Translation> ps_;
     private int len_ = 0;
+    private int ind_ = 0;
 
     private double pTurn_ = 0;
 
@@ -37,8 +39,8 @@ public class PurePursuit {
         double look = gain_ * state.v;
         
         ArrayList<Double> d = ps_.stream() // Make stream for streamlined syntax
-                                // finds the distance to all of the points and sees if they are within the look ahead dist
-                                .map(p -> Math.hypot(state.x - p.fst(), state.y - p.snd()) - look)
+                                // finds the distance to all of the points a\\
+                                .map(p -> Math.hypot(state.x - p.fst(), state.y - p.snd()))
                                 // amkes into an Arraylist
                                 .collect(Collectors.toCollection(ArrayList::new));
 
@@ -48,8 +50,8 @@ public class PurePursuit {
             // variable to make the life easy
             double p = d.get(i);
             // Sees the cloest point to the expected future point
-            double v = (p + look) + Math.hypot(state.x - ps_.get(i).fst(), state.y - ps_.get(i).snd());
-            if((p > 0) // if the distance - look is more than 0
+            double v = p + Math.hypot(state.x - ps_.get(i).fst(), state.y - ps_.get(i).snd());
+            if((p - look >= 0) // if the distance is greater than or equal to the lookahead
             && (v < min)){ // if the summed distance is the least
                 min = v;
                 ind = i;
@@ -79,15 +81,16 @@ public class PurePursuit {
         double turn = (turnPID_.P * (delta - state.r)) + (turnPID_.F * delta) + (turnPID_.D * ((state.r - pTurn_) / 2));
         pTurn_ = delta;
         // Return and make sure that the values are within range
-        return new Pair<Double, Double>(clamp(1, -1, base - turn), clamp(1, -1, base + turn));
-    }
-
-    private double clamp(double hi, double lo, double v){
-        return Math.max(lo, Math.min(hi, v));
+        return new Pair<Double, Double>(Util.clamp(1, -1, base - turn), Util.clamp(1, -1, base + turn));
     }
 
     public Pair<Double, Double> update(RobotState state, double dt){
         int ind = find(state, dt);
+        ind_ = ind;
         return control(state, ind, dt);
+    }
+
+    public int index(){
+        return ind_;
     }
 }

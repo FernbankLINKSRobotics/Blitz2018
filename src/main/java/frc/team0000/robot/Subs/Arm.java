@@ -24,7 +24,8 @@ public class Arm implements Subsystem {
 
     private double armPower_ = 0;
     private double armAngle_ = 0;
-    private boolean isClamped_ = false;
+    private boolean clamping_ = false;
+    private boolean prevClamping_ = false;
     private boolean isClosedLoop_ = false;
 
     public Arm(){}
@@ -39,6 +40,10 @@ public class Arm implements Subsystem {
         armPower_ = p;
     }
 
+    public void setBreak(boolean clamp){
+        clamping_ = clamp;
+    }
+
     @Override public void start(){
         isClosedLoop_ = false;
         armAngle_ = 0;
@@ -48,11 +53,14 @@ public class Arm implements Subsystem {
 
     @Override public void update(){
         if(isClosedLoop_){
-            isClamped_ = false;
+            clamping_ = false;
             // TODO: implement PIDS and stuff
         }
         motor_.set(armPower_);
-        clamp_.set(isClamped_ ? Value.kForward : Value.kReverse);
+        if(prevClamping_ != clamping_){
+            clamp_.set(clamping_ ? Value.kForward : Value.kReverse);
+        }
+        prevClamping_ = clamping_;
     }
 
     @Override public void stop(){
