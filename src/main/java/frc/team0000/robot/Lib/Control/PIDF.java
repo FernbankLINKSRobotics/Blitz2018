@@ -25,6 +25,13 @@ public class PIDF {
     private double prevTime_ = 0;
     private double lastIn_ = Double.NaN;
 
+    public PIDF(double P, double I, double D, double F){
+        P_ = P;
+        I_ = I;
+        D_ = D;
+        F_ = F;
+    }
+
     public PIDF(PIDFSignal s){
         P_ = s.P;
         I_ = s.I;
@@ -39,25 +46,11 @@ public class PIDF {
         F_ = 0;
     }
 
-    public PIDF(double P, double I, double D, double F){
-        P_ = P;
-        I_ = I;
-        D_ = D;
-        F_ = F;
-    }
-
     public double get()     { return result_; }
     public double getError(){ return err_;    }
 
     public void setContinuous(boolean cont) { cont_ = cont; }
     public void setDeadband  (double dead)  { dead_ = dead; }
-
-    public void setPIDF(PIDFSignal s){
-        P_ = s.P;
-        I_ = s.I;
-        D_ = s.D;
-        F_ = s.F;
-    }
 
     public void setPIDF(double P, double I, double D){
         P_ = P;
@@ -71,6 +64,13 @@ public class PIDF {
         I_ = I;
         D_ = D;
         F_ = F;
+    }
+
+    public void setPIDF(PIDFSignal s){
+        P_ = s.P;
+        I_ = s.I;
+        D_ = s.D;
+        F_ = s.F;
     }
 
     public PIDFSignal getPIDVals(){
@@ -133,4 +133,6 @@ public class PIDF {
     }
 
     public void resetIntegration(){ totalErr_ = 0; }
+
+    public PIDF clone() { return new PIDF(P_, I_, D_, F_); }
 }

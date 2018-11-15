@@ -4,9 +4,10 @@ import frc.team0000.robot.Lib.RobotState;
 import frc.team0000.robot.Lib.Subsystem;
 import edu.wpi.first.wpilibj.Timer;
 import frc.team0000.robot.Constants;
-import frc.team0000.robot.Robot;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.I2C;
+
 import com.kauailabs.navx.frc.AHRS;
 
 public class Localization implements Subsystem {
@@ -18,26 +19,24 @@ public class Localization implements Subsystem {
     private RobotState state_ = new RobotState();
 
     private Encoder leftEnc_ = new Encoder(
-        Constants.leftEnc1, 
-        Constants.leftEnc2, 
-        Constants.leftEncInverted, 
+        Constants.Encoder.left1, 
+        Constants.Encoder.left2, 
+        Constants.Encoder.leftInverted, 
         Encoder.EncodingType.k4X
     );
     
     private Encoder rightEnc_ = new Encoder(
-            Constants.rightEnc1, 
-            Constants.rightEnc2, 
-            Constants.rightEncInverted,
+            Constants.Encoder.right1, 
+            Constants.Encoder.right2, 
+            Constants.Encoder.rightInverted,
             Encoder.EncodingType.k4X
     );
 
-    private AHRS gyro = new AHRS(Constants.gyroPort);
+    private AHRS gyro = new AHRS(I2C.Port.kOnboard);
 
     public Localization(){}
 
-    public RobotState getState(){
-        return state_;
-    }
+    public RobotState getState(){ return state_; }
 
     public double getRadians(){
         return gyro.getYaw() * (Math.PI / 180);
@@ -56,40 +55,23 @@ public class Localization implements Subsystem {
     }
 
     public double getVelocity(){
-        return ((rightEnc_.getRate() + leftEnc_.getRate()) / 2) * Constants.distancePerPulse;
+        return ((rightEnc_.getRate() + leftEnc_.getRate()) / 2) * Constants.Encoder.distancePerPulse;
     }
 
     public double getDistance(){
-        return ((rightEnc_.getDistance() + leftEnc_.getDistance()) / 2) * Constants.distancePerPulse;
+        return ((rightEnc_.getDistance() + leftEnc_.getDistance()) / 2) * Constants.Encoder.distancePerPulse;
     }
 
-    public double getLeftDistance(){
-        return leftEnc_.getDistance() * Constants.distancePerPulse;
-    }
+    public double getLeftDistance() { return leftEnc_ .getDistance() * Constants.Encoder.distancePerPulse; }
+    public double getRightDistance(){ return rightEnc_.getDistance() * Constants.Encoder.distancePerPulse; }
 
-    public double getRightDistance(){
-        return rightEnc_.getDistance() * Constants.distancePerPulse;
-    }
+    public double getLeftVelocity() { return leftEnc_ .getRate() * Constants.Encoder.distancePerPulse; }
+    public double getRightVelocity(){ return rightEnc_.getRate() * Constants.Encoder.distancePerPulse; }
 
-    public double getLeftVelocity(){
-        return leftEnc_.getRate() * Constants.distancePerPulse;
-    }
+    public double dt(){ return dt_; }
 
-    public double getRightVelocity(){
-        return rightEnc_.getRate() * Constants.distancePerPulse;
-    }
-
-    public double dt(){
-        return dt_;
-    }
-
-    public double x(){
-        return x_;
-    }
-
-    public double y(){
-        return y_;
-    }
+    public double x(){ return x_; }
+    public double y(){ return y_; }
 
     public void reset(){
         pt_ = 0;
@@ -100,9 +82,7 @@ public class Localization implements Subsystem {
         gyro.reset();
     }
 
-    @Override public void start(){
-        reset();
-    }
+    @Override public void start(){ reset(); }
 
     @Override public void update(){
         double t = Timer.getFPGATimestamp();
@@ -116,6 +96,7 @@ public class Localization implements Subsystem {
     }
 
     @Override public void stop(){}
+
     @Override public void log(){
         SmartDashboard.putNumber("Dead X", x());
         SmartDashboard.putNumber("Dead Y", y());
@@ -127,5 +108,10 @@ public class Localization implements Subsystem {
         SmartDashboard.putNumber("Velocity", getVelocity());
         SmartDashboard.putNumber("Angle", getDegree());
         SmartDashboard.putNumber("Anglular Velocity", getDegreePerSec());
+
+        System.out.println("left: " + leftEnc_.getDistance());
+        System.out.println("right: " + rightEnc_.getDistance());
+        System.out.println("gyro: " + getDegree());
+        System.out.println();
     }
 }

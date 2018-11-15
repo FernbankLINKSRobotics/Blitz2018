@@ -5,13 +5,13 @@ import java.util.ArrayList;
 public class Util<T> {
     public static<T> T getClamped(ArrayList<T> a, int ind){
         if(ind < 0){ ind = 0; }
-        if(ind > a.size()) { ind = a.size(); }
+        if(ind > a.size()) { ind = a.size()-1; }
         return a.get(ind);
     }
 
     public static<T> T getClamped(T[] a, int ind){
         if(ind < 0){ ind = 0; }
-        if(ind > a.length) { ind = a.length; }
+        if(ind > a.length) { ind = a.length-1; }
         return a[ind];
     }
 
@@ -27,9 +27,9 @@ public class Util<T> {
         return t;
     }
 
-    public static double[] linspace(double start, double end, double points){
-        double[] ret = {};
-        for (int i = 0; i < points; i++){  
+    public static double[] linspace(double start, double end, int points){
+        double[] ret = new double[points];
+        for (int i = 0; i < points-1; i++){  
             ret[i] = start + i * (start - end) / (points - 1);  
         }  
         return ret;

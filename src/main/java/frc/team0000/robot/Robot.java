@@ -1,17 +1,25 @@
 package frc.team0000.robot;
 
+import java.rmi.registry.LocateRegistry;
+
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import frc.team0000.robot.Auto.Routines.LineTest;
 import frc.team0000.robot.Lib.SubsystemManager;
-import frc.team0000.robot.Subs.Arm;
-import frc.team0000.robot.Subs.Drivetrain;
-import frc.team0000.robot.Subs.Localization;
+import frc.team0000.robot.Lib.Actions.Routine;
+import frc.team0000.robot.Lib.Actions.RoutineExecutor;
+import frc.team0000.robot.Subs.*;
 
 public class Robot extends IterativeRobot {
 
     public static Localization localization;
     public static Drivetrain drivetrain;
-    public static Arm arm;
+    public static Shooter shooter;
     public static IO io;
+
+    private SendableChooser<Routine> chooser_;
+    private RoutineExecutor executor_ = null;
+    private Routine routine_;
 
     private SubsystemManager sm;
 
@@ -19,13 +27,18 @@ public class Robot extends IterativeRobot {
     public void robotInit(){
         localization = new Localization();
         drivetrain = new Drivetrain();
-        arm = new Arm();
+        shooter = new Shooter();
         io = new IO();
         sm = new SubsystemManager(
             localization,
             drivetrain,
-            arm
+            shooter
         );
+
+        /*
+        chooser_.addDefault("Base line",  new LineTest());
+        SmartDashboard.putData("Autonomous Chooser", chooser_);
+        */
     }
 
     @Override
@@ -39,6 +52,8 @@ public class Robot extends IterativeRobot {
     @Override
     public void autonomousInit(){
         sm.start();
+        executor_ = new RoutineExecutor(new LineTest());
+        executor_.start();
     }
 
     @Override
@@ -47,35 +62,22 @@ public class Robot extends IterativeRobot {
     }
 
     @Override
-    public void teleopInit(){}
+    public void teleopInit(){
+        sm.start();
+    }
 
     @Override
     public void teleopPeriodic(){
         io.update();
+        sm.log();
         sm.update();
-        
-        System.out.println("X: " + localization.x());
-        System.out.println("Y: " + localization.y()); 
-        
-        /*
-        System.out.println(drivetrain.getDegree());
-        System.out.println(drivetrain.getVelocity());
-
-        System.out.println("Left: " + drivetrain.getLeftDistance());
-        System.out.println("Right: " + drivetrain.getRightDistance());
-        */
-
-        //sm.log();
     }
 
     @Override
-    public void testInit(){
-        System.out.println("HIIIII");
-    }
+    public void testInit(){}
 
     @Override
     public void testPeriodic(){
-        //System.out.println("Update");
-        //sm.log();
+        shooter.setPower(1);
     }
 }

@@ -31,6 +31,9 @@ public class PurePursuit {
         len_ = ps.size();
     }
 
+    // TODO: Make this better -> better test by incrementing the ind 
+    // and making sure that it is in the lookahead distance or not
+    // the target point would have the (ind + 1) no in the look
     public int find(RobotState state, double dt){
         // Calculates dead reckon estimations
         double nx = Math.cos(state.r - Math.PI/2) * state.v * dt;

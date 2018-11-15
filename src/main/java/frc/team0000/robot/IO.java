@@ -8,14 +8,24 @@ public class IO{
     public XboxController operator;
 
     public IO(){
-        driver = new XboxController(Constants.driveController);
-        operator = new XboxController(Constants.operatorController);
+        driver = new XboxController(Constants.IO.driveController);
+        operator = new XboxController(Constants.IO.operatorController);
     }
 
     public void update(){
-        Robot.drivetrain.setPower(-driver.getY(Hand.kLeft), driver.getY(Hand.kRight));
-        if(driver.getBumperPressed(Hand.kLeft)) { Robot.drivetrain.setHighGear(false); }
-        if(driver.getBumperPressed(Hand.kRight)){ Robot.drivetrain.setHighGear(true);  }
-        //Robot.arm.setPower(operator.getRawAxis(1));
+        Robot.drivetrain.setArcade(-driver.getX(Hand.kLeft), driver.getY(Hand.kRight));
+        //Robot.drivetrain.setPower(driver.getY(Hand.kLeft), -driver.getY(Hand.kRight));
+        
+        if(driver.getAButton()){
+            Robot.shooter.setPower(.45);
+        } else if (driver.getBButton()) {
+            Robot.shooter.setPower(.6);
+        } else if (driver.getYButton()) {
+            Robot.shooter.setPower(.7);
+        } else if (driver.getXButton()) {
+            Robot.shooter.setPower(1);
+        } else {
+            Robot.shooter.setPower(0);
+        }
     }
 }
